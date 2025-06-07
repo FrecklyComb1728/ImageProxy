@@ -39,90 +39,97 @@ Deno.serve(async (req) => {
     "CDN-Cache-Control": `max-age=${CACHE_MAX_AGE}`,
   };
 
-  // 处理统一配置端点（整合/list和/config功能）
-  if (url.pathname === CONFIG_ENDPOINT) {
-    const params = new URLSearchParams(url.search);
-    
-    // 处理JSON格式请求
-    if (params.get("format") === "json") {
-      const uptime = Date.now() - START_TIME.getTime();
-      const uptimeHours = Math.floor(uptime / (1000 * 60 * 60));
-      const uptimeMinutes = Math.floor((uptime % (1000 * 60 * 60)) / (1000 * 60));
-      
-      const configInfo = {
-        status: "active",
-        version: "v1.0",
-        uptime: `${uptimeHours}小时${uptimeMinutes}分钟`,
-        startTime: START_TIME.toISOString(),
-        cacheMaxAge: `${CACHE_MAX_AGE}秒`,
-        serviceConfig: {
-          title: config.title,
-          description: config.description,
-          footer: config.footer
-        },
-        proxies: config.proxies.map(proxy => ({
-          prefix: proxy.prefix,
-          target: proxy.target,
-          description: proxy.description || "未提供描述",
-          visible: proxy.visible === undefined ? true : proxy.visible,
-          rawRedirect: proxy.rawRedirect || "使用默认目标URL",
-          endpoints: [
-            `https://${url.host}${proxy.prefix}`,
-            `https://${url.host}${proxy.prefix}?raw=true`
-          ]
-        }))
-      };
-      
-      return new Response(JSON.stringify(configInfo, null, 2), {
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Cache-Control": "no-cache"
-        }
-      });
-    }
-    
-    // 处理HTML格式请求
-    if (!configHtml) {
-      return new Response("Configuration UI not available", { status: 503 });
-    }
-    
+f (url.pathname === CONFIG_ENDPOINT) {
+  const params = new URLSearchParams(url.search);
+  
+  // 处理JSON格式请求
+  if (params.get("format") === "json") {
     const uptime = Date.now() - START_TIME.getTime();
     const uptimeHours = Math.floor(uptime / (1000 * 60 * 60));
     const uptimeMinutes = Math.floor((uptime % (1000 * 60 * 60)) / (1000 * 60));
-    const cacheDays = Math.round(CACHE_MAX_AGE / 86400);
     
-    // 构建代理列表HTML
-    const proxyListHtml = config.proxies.map(proxy => `
-      <tr>
+    const configInfo = {
+      status: "active",
+      version: "v1.0",
+      uptime: `${uptimeHours}小时${uptimeMinutes}分钟`,
+      startTime: START_TIME.toISOString(),
+      cacheMaxAge: `${CACHE_MAX_AGE}秒`,
+      serviceConfig: {
+        title: config.title,
+        description: config.description,
+        footer: config.footer
+      },
+      proxies: config.proxies.map(proxy => ({
+        prefix: proxy.prefix,
+        target: proxy.target,
+        description: proxy.description || "未提供描述",
+        visible: proxy.visible === undefined ? true : proxy.visible,
+        rawRedirect: proxy.rawRedirect || "使用默认目标URL",
+        endpoints: [
+          `https://${url.host}${proxy.prefix}your-file-path`,
+          `https://${url.host}${proxy.prefix}your-file-path?raw=true`
+        ]
+      }))
+    };
+    
+    return new Response(JSON.stringify(configInfo, null, 2), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-cache"
+      }
+    });
+  }
+  
+  // 处理HTML格式请求
+  if (!configHtml) {
+    return new Response("Configuration UI not available", { status: 503 });
+  }
+  
+  const uptime = Date.now() - START_TIME.getTime();
+  const uptimeHours = Math.floor(uptime / (1000 * 60 * 60));
+  const uptimeMinutes = Math.floor((uptime % (1000 * 60 * 60)) / (1000 * 60));
+  const cacheDays = Math.round(CACHE_MAX_AGE / 86400);
+  
+  // 构建代理列表HTML - 根据可见性添加不同样式
+  const proxyListHtml = config.proxies.map(proxy => {
+    const isVisible = proxy.visible === undefined ? true : proxy.visible;
+    const visibleClass = isVisible ? "" : "invisible-row";
+    const visibleText = isVisible ? "是" : "否";
+    
+    return `
+      <tr class="${visibleClass}">
         <td>${proxy.prefix}</td>
         <td>${proxy.target}</td>
         <td>${proxy.description || "未提供描述"}</td>
-        <td>${proxy.visible === undefined ? '是' : proxy.visible ? '是' : '否'}</td>
+        <td>${visibleText}</td>
         <td>${proxy.rawRedirect || "自动生成"}</td>
         <td>
           <button class="copy-btn" data-url="${url.origin}${proxy.prefix}">复制代理URL</button>
         </td>
       </tr>
-    `).join("");
-    
-    // 替换配置HTML中的占位符
-    const fullConfigHtml = configHtml
-      .replace(/{{TITLE}}/g, config.title || "CDN代理服务")
-      .replace(/{{DESCRIPTION}}/g, config.description || "高性能CDN代理服务")
-      .replace(/{{FOOTER}}/g, config.footer || "© 2025 Mifeng CDN代理服务")
-      .replace(/{{START_TIME}}/g, START_TIME.toLocaleString())
-      .replace(/{{UPTIME}}/g, `${uptimeHours}小时${uptimeMinutes}分钟`)
-      .replace(/{{CACHE_DAYS}}/g, cacheDays)
-      .replace(/{{PROXY_LIST}}/g, proxyListHtml)
-      .replace(/{{CONFIG_ENDPOINT}}/g, `${CONFIG_ENDPOINT}?format=json`);
-    
-    return new Response(fullConfigHtml, {
-      headers: {
-        ...cacheHeaders,
-        "Content-Type": "text/html; charset=utf-8",
-      }
-    });
-  }
+    `;
+  }).join("");
+  
+  // 替换配置HTML中的占位符
+  const fullConfigHtml = configHtml
+    .replace(/{{TITLE}}/g, config.title || "CDN代理服务")
+    .replace(/{{DESCRIPTION}}/g, config.description || "高性能CDN代理服务")
+    .replace(/{{FOOTER}}/g, config.footer || "© 2025 Mifeng CDN代理服务")
+    .replace(/{{START_TIME}}/g, START_TIME.toLocaleString())
+    .replace(/{{UPTIME}}/g, `${uptimeHours}小时${uptimeMinutes}分钟`)
+    .replace(/{{CACHE_DAYS}}/g, cacheDays)
+    .replace(/{{PROXY_LIST}}/g, proxyListHtml)
+    .replace(/{{CONFIG_ENDPOINT}}/g, `${CONFIG_ENDPOINT}?format=json`)
+    .replace(/{{VISIBLE_COUNT}}/g, config.proxies.filter(p => p.visible !== false).length)
+    .replace(/{{TOTAL_COUNT}}/g, config.proxies.length);
+  
+  return new Response(fullConfigHtml, {
+    headers: {
+      ...cacheHeaders,
+      "Content-Type": "text/html; charset=utf-8",
+    }
+  });
+}
 
   // 处理图标请求
   if (url.pathname === "/favicon.ico") {
