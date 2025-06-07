@@ -1,0 +1,27 @@
+{
+  "title": "MIFENG CDN代理服务",
+  "description": "高性能多源CDN代理解决方案",
+  "footer": "© 2025 Mifeng CDN服务 | 提供稳定快速的资源访问",
+  "proxies": [
+    {
+      "prefix": "/imlazy/",
+      "target": "https://cdn.imlazy.ink:233/img/background/",
+      "description": "个人图床服务(非本人图床，仅作反代)",
+      "visible": false
+    },
+    {
+      "prefix": "/image-oss/",
+      "target": "https://cdn.statically.io/gh/FrecklyComb1728/image-oss@master/",
+      "rawRedirect": "https://cdn.jsdmirror.cn/gh/FrecklyComb1728/image-oss@master/{path}",
+      "description": "个人GitHub OSS图片镜像",
+      "visible": true
+    },
+    {
+      "prefix": "/gh/",
+      "target": "https://cdn.statically.io/gh/",
+      "rawRedirect": "https://cdn.jsdmirror.cn/gh/{path}",
+      "description": "statically反代(类jsdelivr静态文件加速)",
+      "visible": true
+    }
+  ]
+}
