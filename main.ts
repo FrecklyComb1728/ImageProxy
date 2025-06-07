@@ -1,7 +1,7 @@
 const FAVICON_PATH = "./public/favicon.ico";
 const INDEX_FILE = "./public/index.html";
 const CONFIG_HTML_FILE = "./public/list.html";
-const CONFIG_FILE = "./config/main-config.json";
+const CONFIG_FILE = "./config/main_config.json";
 const CACHE_MAX_AGE = 5184000; // 24小时缓存（单位：秒）
 const CONFIG_ENDPOINT = "/list"; // 统一配置端点
 
