@@ -66,8 +66,8 @@ f (url.pathname === CONFIG_ENDPOINT) {
         visible: proxy.visible === undefined ? true : proxy.visible,
         rawRedirect: proxy.rawRedirect || "使用默认目标URL",
         endpoints: [
-          `https://${url.host}${proxy.prefix}your-file-path`,
-          `https://${url.host}${proxy.prefix}your-file-path?raw=true`
+          `https://${url.host}${proxy.prefix}`,
+          `https://${url.host}${proxy.prefix}?raw=true`
         ]
       }))
     };
@@ -90,25 +90,23 @@ f (url.pathname === CONFIG_ENDPOINT) {
   const uptimeMinutes = Math.floor((uptime % (1000 * 60 * 60)) / (1000 * 60));
   const cacheDays = Math.round(CACHE_MAX_AGE / 86400);
   
-  // 构建代理列表HTML - 根据可见性添加不同样式
-  const proxyListHtml = config.proxies.map(proxy => {
-    const isVisible = proxy.visible === undefined ? true : proxy.visible;
-    const visibleClass = isVisible ? "" : "invisible-row";
-    const visibleText = isVisible ? "是" : "否";
-    
-    return `
-      <tr class="${visibleClass}">
-        <td>${proxy.prefix}</td>
-        <td>${proxy.target}</td>
-        <td>${proxy.description || "未提供描述"}</td>
-        <td>${visibleText}</td>
-        <td>${proxy.rawRedirect || "自动生成"}</td>
-        <td>
-          <button class="copy-btn" data-url="${url.origin}${proxy.prefix}">复制代理URL</button>
-        </td>
-      </tr>
-    `;
-  }).join("");
+  // 构建代理列表HTML - 只显示可见的代理
+  const proxyListHtml = config.proxies
+    .filter(proxy => proxy.visible !== false) // 只保留可见的代理
+    .map(proxy => {
+      return `
+        <tr>
+          <td>${proxy.prefix}</td>
+          <td>${proxy.target}</td>
+          <td>${proxy.description || "未提供描述"}</td>
+          <td>是</td>
+          <td>${proxy.rawRedirect || "自动生成"}</td>
+          <td>
+            <button class="copy-btn" data-url="${url.origin}${proxy.prefix}">复制代理URL</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
   
   // 替换配置HTML中的占位符
   const fullConfigHtml = configHtml
