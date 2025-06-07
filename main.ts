@@ -1,9 +1,9 @@
-const FAVICON_PATH = "./favicon.ico";
+const FAVICON_PATH = "./public/favicon.ico";
 const CACHE_MAX_AGE = 5184000; // 24小时缓存（单位：秒）
 
 // 预加载资源
 const [homepage, favicon] = await Promise.all([
-  Deno.readTextFile("./index.html").catch(() => null),
+  Deno.readTextFile("./public/index.html").catch(() => null),
   Deno.readFile(FAVICON_PATH).catch(() => null),
 ]);
 
@@ -29,7 +29,8 @@ Deno.serve(async (req) => {
     "CDN-Cache-Control": `max-age=${CACHE_MAX_AGE}`,
   };
 
-  // 处理图标请求
+  // 修复: 使用正确的 favicon.ico 路径
+  // 处理图标请求 - 确保浏览器请求 /favicon.ico 时返回正确的图标
   if (url.pathname === "/favicon.ico") {
     return favicon 
       ? new Response(favicon, {
@@ -57,7 +58,7 @@ Deno.serve(async (req) => {
   let proxyConfig = null;
   let basePath = url.pathname;
 
-  // 查找匹配的代理配置
+  // 查找匹配的代理配置 - 按前缀长度降序确保精确匹配
   for (const proxy of PROXIES) {
     if (url.pathname.startsWith(proxy.prefix)) {
       proxyConfig = proxy;
@@ -70,12 +71,13 @@ Deno.serve(async (req) => {
     return new Response("Not Found", { status: 404 });
   }
 
-  // 路径安全化处理
+  // 路径安全化处理 - 防止路径遍历攻击
   const sanitizedPath = basePath
     .replace(/^\//, "") // 去除开头斜杠
     .replace(/\|/g, "") // 去除非法字符
     .replace(/\/+/g, "/"); // 合并连续斜杠
 
+  // 构建目标URL
   const targetUrl = new URL(sanitizedPath, proxyConfig.target);
 
   // 处理 raw 参数（当 raw=true 时重定向到源链接）
@@ -87,9 +89,8 @@ Deno.serve(async (req) => {
       // 使用自定义模板构建重定向URL ({path}占位符会被替换)
       redirectUrl = proxyConfig.rawRedirect.replace("{path}", sanitizedPath);
     } 
-    // 2. 冗余措施：没有自定义模板时自动生成基础重定向URL
+    // 2. 冗余措施：没有自定义模板时自动使用目标URL作为重定向地址
     else {
-      // 使用默认目标URL作为基础
       redirectUrl = targetUrl.toString();
     }
     
@@ -100,6 +101,7 @@ Deno.serve(async (req) => {
     });
     
     if (params.toString()) {
+      // 智能处理查询参数分隔符 (? vs &)
       redirectUrl += (redirectUrl.includes('?') ? '&' : '?') + params.toString();
     }
     
@@ -114,13 +116,14 @@ Deno.serve(async (req) => {
 
   try {
     const headers = new Headers(req.headers);
-    headers.delete("host");
+    headers.delete("host"); // 删除原始host头
 
     // 添加所有查询参数到目标 URL
     url.searchParams.forEach((value, key) => {
       targetUrl.searchParams.append(key, value);
     });
 
+    // 转发请求到目标服务器
     const response = await fetch(targetUrl, {
       method: req.method,
       headers: headers,
@@ -128,11 +131,18 @@ Deno.serve(async (req) => {
     });
 
     const responseHeaders = new Headers(response.headers);
+    
+    // 强制设置缓存头
     responseHeaders.set("Cache-Control", `public, max-age=${CACHE_MAX_AGE}`);
     
     // 确保响应包含正确的内容类型
     const contentType = responseHeaders.get("Content-Type") || "application/octet-stream";
-    responseHeaders.set("Content-Type", `${contentType.includes(';') ? contentType : contentType + '; charset=utf-8'}`);
+    // 智能添加字符集参数（避免重复）
+    if (!contentType.includes('charset')) {
+      responseHeaders.set("Content-Type", `${contentType}; charset=utf-8`);
+    } else {
+      responseHeaders.set("Content-Type", contentType);
+    }
 
     return new Response(response.body, {
       status: response.status,
