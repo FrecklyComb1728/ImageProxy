@@ -32,13 +32,13 @@ jobs:
         run: "pnpm install"
 
       - name: Build step
-        run: "pnpm start"
+        run: "node index.js"
 
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: "mifeng-image-proxy"
-          entrypoint: "pnpm start"
+          entrypoint: "node index.js"
           root: "/"
           
           
