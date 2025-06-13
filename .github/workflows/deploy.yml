@@ -35,7 +35,7 @@ jobs:
         uses: denoland/deployctl@v1
         with:
           project: "mifeng-image-proxy"
-          entrypoint: "node index.js"
+          entrypoint: "npm start"
           root: "/"
           
           
