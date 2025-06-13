@@ -7,10 +7,7 @@ import { parseTime, getCacheHeaders } from './src/cacheUtils.js';
 import { logBuffer } from './src/logBuffer.js';
 import { calculateUptime, formatEstablishTime } from './src/uptimeUtils.js';
 import ImageCache from './src/imageCache.js';
-import configRoute from './src/routes/configRoute.js';
-import faviconRoute from './src/routes/faviconRoute.js';
-import homeRoute from './src/routes/homeRoute.js';
-import logsRoute from './src/routes/logsRoute.js';
+import basicRoutes from './src/routes/basicRoutes.js';
 import proxyRoute from './src/routes/proxyRoute.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,10 +36,7 @@ const maxAgeSeconds = config.cache?.maxTime ? parseTime(config.cache.maxTime) : 
 const cacheHeaders = getCacheHeaders(maxAgeSeconds);
 const imageCache = new ImageCache(config);
 
-configRoute(app, config, START_TIME, configHtml, CONFIG_ENDPOINT, maxAgeSeconds);
-faviconRoute(app, favicon, cacheHeaders);
-homeRoute(app, homepage, cacheHeaders);
-logsRoute(app);
+basicRoutes(app, config, START_TIME, homepage, favicon, configHtml, CONFIG_ENDPOINT, maxAgeSeconds, cacheHeaders);
 proxyRoute(app, config, cacheHeaders, imageCache);
 
 const PORT = process.env.PORT || 3000;
