@@ -370,13 +370,11 @@
     </header>
     
     <div class="content">
-      <div class="stats-summary">
-        <div class="stat-card">
+      <div class="stats-summary">        <div class="stat-card">
           <div class="card-title">
             <i>⏱️</i> 服务运行时间
-          </div>
-          <div class="stat-value" id="uptime">{{UPTIME}}</div>
-          <div class="stat-label">启动时间: {{START_TIME}}</div>
+          </div>          <div class="stat-value" id="uptime">{{UPTIME}}</div>
+          <div class="stat-label" id="establish-time" data-time="{{ESTABLISH_TIME_RAW}}">建站于 {{ESTABLISH_TIME}}</div>
         </div>
         
         <div class="stat-card">
@@ -461,22 +459,49 @@
         }, 2000);
       });
     });
+      // 计算运行时间
+    function calculateUptime(establishTime) {
+      const [year, month, day, hour, minute] = establishTime.split('/').map(Number);
+      const establishDate = new Date(year, month - 1, day, hour, minute);
+      const now = new Date();
+      const diff = now - establishDate;
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      
+      let uptime = "";
+      if (days > 0) uptime += `${days}天`;
+      if (hours > 0) uptime += `${hours}小时`;
+      uptime += `${minutes}分钟`;
+      
+      return uptime;
+    }
+
+    // 更新运行时间显示
+    function updateUptime() {
+      const uptimeElement = document.getElementById('uptime');
+      const establishTimeStr = document.getElementById('establish-time').getAttribute('data-time');
+      uptimeElement.textContent = calculateUptime(establishTimeStr);
+    }
+
+    // 定期更新运行时间
+    setInterval(updateUptime, 60000); // 每分钟更新一次
     
     // 刷新统计数据
     function refreshStats() {
-      // 模拟刷新效果
       const uptimeElement = document.getElementById('uptime');
-      const originalUptime = uptimeElement.textContent;
+      const originalColor = uptimeElement.style.color;
       
       uptimeElement.textContent = '刷新中...';
+      uptimeElement.style.color = '#f39c12';
       
       setTimeout(() => {
-        uptimeElement.textContent = originalUptime;
-        
-        // 添加视觉反馈
+        updateUptime();
         uptimeElement.style.color = '#2ecc71';
+        
         setTimeout(() => {
-          uptimeElement.style.color = '';
+          uptimeElement.style.color = originalColor;
         }, 1000);
       }, 800);
     }
