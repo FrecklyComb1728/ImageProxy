@@ -24,3 +24,4 @@ build/
 *_bak
 deno/*
 package-lock.json
+*.lock
