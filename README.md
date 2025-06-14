@@ -31,3 +31,4 @@ npm start
 - 灵活的代理规则配置
 - 支持多个CDN源
 - HTML和JSON格式的配置查看界面
+

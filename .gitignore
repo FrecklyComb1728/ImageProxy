@@ -22,3 +22,4 @@ build/
 \#*
 .settings
 *_bak
+deno/*
