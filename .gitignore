@@ -23,3 +23,4 @@ build/
 .settings
 *_bak
 deno/*
+package-lock.json
