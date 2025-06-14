@@ -14,7 +14,8 @@
     "proxies": [
         {
             "prefix": "/imlazy/",
-            "target": "https://cdn.imlazy.ink:233/img/background/",
+            "target": "https://s7.imlazy.ink:233/img/background/",
+            "rawRedirect": "https://cdn.imlazy.ink:233/img/background/{path}",
             "description": "个人图床服务(非本人图床，仅作反代并缓存)",
             "visible": false
         },
