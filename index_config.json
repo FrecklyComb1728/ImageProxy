@@ -7,7 +7,7 @@
     "cache": {
         "enabled": true,
         "minSize": "8MB",
-        "maxTime": "86400S",
+        "maxTime": "2678400S",
         "imageTypes": ["png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "ico"]
     },
     "host": "localhost",
