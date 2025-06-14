@@ -39,31 +39,35 @@ const imageCache = new ImageCache(config);
 basicRoutes(app, config, START_TIME, homepage, favicon, configHtml, CONFIG_ENDPOINT, maxAgeSeconds, cacheHeaders);
 proxyRoute(app, config, cacheHeaders, imageCache);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  const host = config.host || 'localhost';
-  const cacheEnabled = config.cache?.enabled !== false;
-  const minSize = config.cache?.minSize || '8MB';
-  const cacheTime = config.cache?.maxTime || '86400S';
-  const cacheDays = Math.floor((parseTime(cacheTime) || 86400) / 86400);
-  const imageTypes = (config.cache?.imageTypes || []).join(', ');
-  const proxies = config.proxies || [];
-  const establishTimeStr = formatEstablishTime(config.establishTime);
-  const uptimeStr = calculateUptime(config.establishTime);
-  console.log('================= MIFENG CDN代理服务 启动信息 =================');
-  console.log(`服务名称: ${config.title}`);
-  console.log(`服务描述: ${config.description}`);
-  console.log(`页脚信息: ${config.footer}`);
-  console.log(`监听地址: http://${host}:${PORT}`);
-  console.log(`缓存启用: ${cacheEnabled ? '是' : '否'}`);
-  console.log(`最小缓存大小: ${minSize}`);
-  console.log(`缓存时间: ${cacheDays}天`);
-  console.log(`支持图片类型: ${imageTypes}`);
-  console.log('代理配置:');
-  proxies.forEach(proxy => {
-    console.log(`  - 路径: ${proxy.prefix} 目标: ${proxy.target} 可见: ${proxy.visible !== false ? '是' : '否'} 描述: ${proxy.description || '无'}`);
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    const host = config.host || 'localhost';
+    const cacheEnabled = config.cache?.enabled !== false;
+    const minSize = config.cache?.minSize || '8MB';
+    const cacheTime = config.cache?.maxTime || '86400S';
+    const cacheDays = Math.floor((parseTime(cacheTime) || 86400) / 86400);
+    const imageTypes = (config.cache?.imageTypes || []).join(', ');
+    const proxies = config.proxies || [];
+    const establishTimeStr = formatEstablishTime(config.establishTime);
+    const uptimeStr = calculateUptime(config.establishTime);
+    console.log('================= MIFENG CDN代理服务 启动信息 =================');
+    console.log(`服务名称: ${config.title}`);
+    console.log(`服务描述: ${config.description}`);
+    console.log(`页脚信息: ${config.footer}`);
+    console.log(`监听地址: http://${host}:${PORT}`);
+    console.log(`缓存启用: ${cacheEnabled ? '是' : '否'}`);
+    console.log(`最小缓存大小: ${minSize}`);
+    console.log(`缓存时间: ${cacheDays}天`);
+    console.log(`支持图片类型: ${imageTypes}`);
+    console.log('代理配置:');
+    proxies.forEach(proxy => {
+      console.log(`  - 路径: ${proxy.prefix} 目标: ${proxy.target} 可见: ${proxy.visible !== false ? '是' : '否'} 描述: ${proxy.description || '无'}`);
+    });
+    console.log(`建站时间: ${establishTimeStr}`);
+    console.log(`已运行: ${uptimeStr}`);
+    console.log('============================================================');
   });
-  console.log(`建站时间: ${establishTimeStr}`);
-  console.log(`已运行: ${uptimeStr}`);
-  console.log('============================================================');
-});
+}
+
+export default app;
